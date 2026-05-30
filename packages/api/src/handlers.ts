@@ -1,7 +1,7 @@
 // The four operations. verify uses ONLY the adversarial / proof-assistance path
 // and terminates in the BSV header chain; it refuses any trusted-operational
 // result.
-import type { Result } from '@vaa/bsv';
+import type { Result, Point, Hash, Txid } from '@vaa/bsv';
 import { HashOps, TxidOps, ScriptOps, ok, err } from '@vaa/bsv';
 import type { HeaderChain } from '@vaa/bsv';
 import { merkleProof, computeRoot, proveAgainstChain } from '@vaa/merkle';
@@ -15,6 +15,14 @@ import type { ApiError } from './errors.js';
 import { badRequest, notFound, internal } from './errors.js';
 import type { ParsedAnchor, ParsedProve, ParsedQuery, ParsedVerify } from './schemas.js';
 
+// A backend for the chain operations (Pillar 2). Implemented by chainhandlers'
+// ChainService.
+export interface ChainBackend {
+  append(txid: Txid, fieldRoot: Hash, prevVout: number | undefined): Result<{ index: number; linkPubHex: string; signatureHex: string }, ApiError>;
+  verify(): VerifyOutcome;
+  getChain(): import('@vaa/chain').TransactionChain;
+}
+
 export interface AppContext {
   config: AppConfig;
   headerChain: HeaderChain;
@@ -22,6 +30,9 @@ export interface AppContext {
   auditLog: AuditLog;
   logger: Logger;
   now: () => number;
+  rootPub?: Point;
+  genesisMsg?: Hash;
+  chainBackend?: ChainBackend;
 }
 
 export type VerifyOutcome = { ok: true } | { ok: false; reason: { kind: string } };

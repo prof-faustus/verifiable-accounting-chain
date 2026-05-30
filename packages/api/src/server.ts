@@ -11,6 +11,7 @@ import type { ApiError } from './errors.js';
 import { parseAnchorRequest, parseProveRequest, parseQueryRequest, parseVerifyRequest } from './schemas.js';
 import { anchor, prove, query, verify } from './handlers.js';
 import type { AppContext } from './handlers.js';
+import { chainAppend, chainVerify, bundleIssue, bundleVerify } from './chainhandlers.js';
 
 export interface HandledResponse {
   status: number;
@@ -32,7 +33,8 @@ export function createApp(ctx: AppContext): App {
   function handle(req: ApiRequest): HandledResponse {
     if (req.method === 'GET' && req.path === '/healthz') return { status: 200, json: { status: 'ok' } };
     if (req.method === 'GET' && req.path === '/readyz') return { status: 200, json: { ready: true } };
-    if (req.method !== 'POST') return errBody({ kind: 'NotFound', message: 'no such route', what: `${req.method} ${req.path}` });
+    const isChainVerify = req.method === 'GET' && req.path === '/chain/verify';
+    if (req.method !== 'POST' && !isChainVerify) return errBody({ kind: 'NotFound', message: 'no such route', what: `${req.method} ${req.path}` });
 
     const authed = authenticate(req, ctx.config);
     if (!authed.ok) {
@@ -45,6 +47,11 @@ export function createApp(ctx: AppContext): App {
     if (!limited.ok) {
       ctx.logger.warn('rate_limited', { caller: callerId });
       return errBody(limited.error);
+    }
+
+    if (isChainVerify) {
+      const r = chainVerify(ctx);
+      return r.ok ? { status: 200, json: r.value } : errBody(r.error);
     }
 
     switch (req.path) {
@@ -70,6 +77,18 @@ export function createApp(ctx: AppContext): App {
         const parsed = parseVerifyRequest(req.body);
         if (!parsed.ok) return errBody(parsed.error);
         const r = verify(parsed.value, ctx);
+        return r.ok ? { status: 200, json: r.value } : errBody(r.error);
+      }
+      case '/chain/append': {
+        const r = chainAppend(req.body, ctx);
+        return r.ok ? { status: 200, json: r.value } : errBody(r.error);
+      }
+      case '/bundle/issue': {
+        const r = bundleIssue(req.body, ctx);
+        return r.ok ? { status: 200, json: r.value } : errBody(r.error);
+      }
+      case '/bundle/verify': {
+        const r = bundleVerify(req.body, ctx);
         return r.ok ? { status: 200, json: r.value } : errBody(r.error);
       }
       default:

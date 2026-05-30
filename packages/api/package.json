@@ -1,7 +1,7 @@
 {
   "name": "@vaa/api",
   "version": "0.1.0",
-  "description": "Enterprise service over the two patents: anchor, prove, query, and audit-path verify terminating in the BSV header chain.",
+  "description": "Enterprise service: anchor, prove, query, audit-path verify, chain append/verify, and bundle issue/verify, terminating in the BSV header chain.",
   "type": "module",
   "exports": {
     ".": {
@@ -17,8 +17,11 @@
   },
   "dependencies": {
     "@vaa/bsv": "*",
+    "@vaa/keys": "*",
+    "@vaa/chain": "*",
     "@vaa/merkle": "*",
     "@vaa/proofstore": "*",
-    "@vaa/evidence": "*"
+    "@vaa/evidence": "*",
+    "@vaa/bundle": "*"
   }
 }

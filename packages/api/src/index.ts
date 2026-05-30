@@ -30,8 +30,11 @@ export {
   parseIndexKey,
 } from './schemas.js';
 
-export type { AppContext, VerifyOutcome, StoredProofJson } from './handlers.js';
+export type { AppContext, VerifyOutcome, StoredProofJson, ChainBackend } from './handlers.js';
 export { anchor, prove, query, verify } from './handlers.js';
+
+export { ChainService, chainAppend, chainVerify, bundleIssue, bundleVerify } from './chainhandlers.js';
+export { bundleToJson, bundleFromJson } from './bundlecodec.js';
 
 export type { App, HandledResponse } from './server.js';
 export { createApp, startServer } from './server.js';
