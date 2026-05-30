@@ -25,8 +25,28 @@ export {
   nodeUnreachable,
   nodeNotFound,
   nodeBadResponse,
+  curveBadPoint,
   bytesOutOfRange,
 } from './errors.js';
+
+export type { Scalar, Point } from './curve.js';
+export {
+  CURVE_N,
+  CURVE_G,
+  scalarMod,
+  scalarAdd,
+  scalarIsZero,
+  reduceScalar,
+  reduceHash,
+  pointMul,
+  pointMulG,
+  pointAdd,
+  pointEq,
+  encodePoint,
+  pointToHex,
+  decodePoint,
+  pointFromHex,
+} from './curve.js';
 
 export type { VarInt } from './bytes.js';
 export {

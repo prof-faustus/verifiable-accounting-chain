@@ -15,6 +15,7 @@ export type BsvError =
   | { kind: 'NodeUnreachable'; message: string; detail: string }
   | { kind: 'NodeNotFound'; message: string; what: string }
   | { kind: 'NodeBadResponse'; message: string; detail: string }
+  | { kind: 'CurveBadPoint'; message: string; detail: string }
   | { kind: 'BytesOutOfRange'; message: string; offset: number; length: number; bufferLength: number };
 
 export type BsvErrorKind = BsvError['kind'];
@@ -102,6 +103,12 @@ export const nodeNotFound = (what: string): BsvError => ({
 export const nodeBadResponse = (detail: string): BsvError => ({
   kind: 'NodeBadResponse',
   message: `bad node response: ${detail}`,
+  detail,
+});
+
+export const curveBadPoint = (detail: string): BsvError => ({
+  kind: 'CurveBadPoint',
+  message: `invalid curve point: ${detail}`,
   detail,
 });
 
