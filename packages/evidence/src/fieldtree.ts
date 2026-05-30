@@ -1,23 +1,18 @@
 // THE FIELD MODEL (core). An accounting transaction is an ordered set of named
 // fields; EACH FIELD IS A LEAF in a Merkle tree built over that one accounting
-// transaction's fields (intra-transaction). The root commits the whole field set
-// and is carried as pushdata in ONE Bitcoin (BSV) transaction (never OP_RETURN);
-// the root may be held in parts across the transaction's scripts.
-import type { Hash, Script, Result, VerifyResult } from '@vaa/bsv';
-import {
-  hashLeaf,
-  HashOps,
-  concat,
-  writeVarInt,
-  readVarInt,
-  buildScriptDataEnvelope,
-  recognise,
-} from '@vaa/bsv';
+// transaction's fields. The field leaf is the double-SHA256 of the exact on-chain
+// FIELD-item body (so on-chain bytes == hashed bytes; Part 5C-P3). The whole
+// structure is carried as pushdata in ONE Bitcoin (BSV) transaction across its
+// outputs — never OP_RETURN.
+import type { Hash, Script, Txid, Point, Result, VerifyResult } from '@vaa/bsv';
+import { doubleSha256, concat } from '@vaa/bsv';
 import { computeRoot, merkleProof, verifyProof } from '@vaa/merkle';
 import type { MerkleProof, MerkleVerifyReason } from '@vaa/merkle';
 import type { EvidenceObject } from './schema.js';
 import type { EvidenceError } from './errors.js';
-import { schemaInvalid, deserialiseTruncated } from './errors.js';
+import { schemaInvalid } from './errors.js';
+import type { ChainItem } from './encoding.js';
+import { fieldItemBody, encodeStream, decodeStream, packEnvelopes, unpackEnvelopes } from './encoding.js';
 
 export interface AccountingField {
   tag: string;
@@ -32,11 +27,9 @@ export interface AccountingTransaction {
 }
 
 const encoder = new TextEncoder();
-const decoder = new TextDecoder('utf-8', { fatal: true });
 const VALUE_VERSION = 0x01;
-const ROOT_PART_MAGIC = Uint8Array.of(0x56, 0x41, 0x52, 0x50); // "VARP" — field-tree root part
 
-const KIND_TO_BYTE: Record<AccountingKind, number> = {
+export const KIND_TO_BYTE: Record<AccountingKind, number> = {
   invoice: 1,
   journal: 2,
   ledgerPosting: 3,
@@ -51,8 +44,8 @@ const BYTE_TO_KIND: Record<number, AccountingKind> = {
   5: 'statementLines',
 };
 
-// Canonical value encodings (a leading version byte, then the value bytes;
-// numbers are fixed-width 8-byte big-endian minor units).
+// Canonical value encodings (a leading version byte; numbers are fixed-width
+// 8-byte big-endian minor units).
 export function numericValue(n: bigint): Uint8Array {
   const out = new Uint8Array(9);
   out[0] = VALUE_VERSION;
@@ -68,39 +61,14 @@ export function stringValue(s: string): Uint8Array {
   return concat(Uint8Array.of(VALUE_VERSION), encoder.encode(s));
 }
 
-// The canonical (tag, value) encoding that is hashed as a leaf.
-export function serialiseField(field: AccountingField): Uint8Array {
-  const tagBytes = encoder.encode(field.tag);
-  return concat(writeVarInt(BigInt(tagBytes.length)), tagBytes, writeVarInt(BigInt(field.value.length)), field.value);
-}
-
-export function deserialiseField(bytes: Uint8Array): Result<AccountingField, EvidenceError> {
-  const tagLen = readVarInt(bytes, 0);
-  if (!tagLen.ok) return { ok: false, error: deserialiseTruncated() };
-  let off = tagLen.value.nextOffset;
-  const tn = Number(tagLen.value.value);
-  if (off + tn > bytes.length) return { ok: false, error: deserialiseTruncated() };
-  let tag: string;
-  try {
-    tag = decoder.decode(bytes.subarray(off, off + tn));
-  } catch {
-    return { ok: false, error: schemaInvalid('tag', 'invalid UTF-8') };
-  }
-  off += tn;
-  const valLen = readVarInt(bytes, off);
-  if (!valLen.ok) return { ok: false, error: deserialiseTruncated() };
-  off = valLen.value.nextOffset;
-  const vn = Number(valLen.value.value);
-  if (off + vn > bytes.length) return { ok: false, error: deserialiseTruncated() };
-  return { ok: true, value: { tag, value: Uint8Array.from(bytes.subarray(off, off + vn)) } };
-}
-
-export function fieldLeaf(field: AccountingField): Hash {
-  return hashLeaf(serialiseField(field));
+// The field leaf: double-SHA256 of the exact FIELD-item body (leafIndex, tag,
+// value). The leafIndex binds each field to its position.
+export function fieldLeaf(leafIndex: number, field: AccountingField): Hash {
+  return doubleSha256(fieldItemBody(leafIndex, field.tag, field.value));
 }
 
 export function fieldLeaves(tx: AccountingTransaction): Hash[] {
-  return tx.fields.map((f) => fieldLeaf(f));
+  return tx.fields.map((f, i) => fieldLeaf(i, f));
 }
 
 export function fieldTreeRoot(tx: AccountingTransaction): Result<Hash, EvidenceError> {
@@ -143,62 +111,76 @@ export function expandToFields(obj: EvidenceObject): AccountingField[] {
   }
 }
 
-// CARRIAGE IN ONE BITCOIN (BSV) TRANSACTION (no OP_RETURN, ever). scripts[0]
-// carries the whole field set; scripts[1..2] carry the 32-byte root held in two
-// parts. See docs/DECISIONS.md D5.
+export interface ChainLinkData {
+  index: number;
+  prevTxid: Txid;
+  prevFieldRoot: Hash;
+  prevOutpointVout: number;
+  linkPub: Point;
+  signature: Uint8Array;
+}
+
+// Build the HEADER + FIELD items (plus any extra TLV items) and pack them into
+// OP_FALSE OP_IF envelopes across the outputs of ONE Bitcoin (BSV) transaction.
 export function buildAccountingTx(
   tx: AccountingTransaction,
-): Result<{ lockingScripts: Script[]; fieldTreeRoot: Hash }, EvidenceError> {
+  extras: ChainItem[] = [],
+): Result<{ lockingScripts: Script[]; fieldTreeRoot: Hash; items: ChainItem[] }, EvidenceError> {
   const root = fieldTreeRoot(tx);
   if (!root.ok) return { ok: false, error: root.error };
 
-  const fieldSet = serialiseFieldSet(tx);
-  const env0 = buildScriptDataEnvelope(fieldSet);
-  if (!env0.ok) return { ok: false, error: schemaInvalid('fields', 'field set too large for one envelope') };
-
-  const rootBytes = HashOps.toInternalBytes(root.value);
-  const part0 = concat(ROOT_PART_MAGIC, Uint8Array.of(0x00), rootBytes.subarray(0, 16));
-  const part1 = concat(ROOT_PART_MAGIC, Uint8Array.of(0x01), rootBytes.subarray(16, 32));
-  const env1 = buildScriptDataEnvelope(part0);
-  const env2 = buildScriptDataEnvelope(part1);
-  if (!env1.ok || !env2.ok) return { ok: false, error: schemaInvalid('root', 'root part too large for one envelope') };
-
-  return { ok: true, value: { lockingScripts: [env0.value.lockingScript, env1.value.lockingScript, env2.value.lockingScript], fieldTreeRoot: root.value } };
+  const items: ChainItem[] = [
+    { type: 'header', kind: KIND_TO_BYTE[tx.kind], fieldCount: tx.fields.length, fieldTreeRoot: root.value, rootPartScheme: 0, partCount: 0 },
+    ...tx.fields.map((f, i): ChainItem => ({ type: 'field', leafIndex: i, tag: f.tag, value: f.value })),
+    ...extras,
+  ];
+  const scripts = packEnvelopes(encodeStream(items));
+  if (!scripts.ok) return { ok: false, error: scripts.error };
+  return { ok: true, value: { lockingScripts: scripts.value, fieldTreeRoot: root.value, items } };
 }
 
-function serialiseFieldSet(tx: AccountingTransaction): Uint8Array {
-  const parts: Uint8Array[] = [Uint8Array.of(0x01), Uint8Array.of(KIND_TO_BYTE[tx.kind]), writeVarInt(BigInt(tx.fields.length))];
-  for (const f of tx.fields) parts.push(serialiseField(f));
-  return concat(...parts);
+// Build the accounting transaction as the next chain link: append a CHAIN-LINK
+// item so the link travels in the transaction's script.
+export function buildChainedAccountingTx(
+  tx: AccountingTransaction,
+  link: ChainLinkData,
+  extras: ChainItem[] = [],
+): Result<{ lockingScripts: Script[]; fieldTreeRoot: Hash; items: ChainItem[] }, EvidenceError> {
+  const chainItem: ChainItem = {
+    type: 'chainLink',
+    index: link.index,
+    prevTxid: link.prevTxid,
+    prevFieldRoot: link.prevFieldRoot,
+    prevOutpointVout: link.prevOutpointVout,
+    linkPub: link.linkPub,
+    signature: link.signature,
+  };
+  return buildAccountingTx(tx, [chainItem, ...extras]);
 }
 
-export function parseAccountingTx(scripts: Script[]): Result<AccountingTransaction, EvidenceError> {
+export function parseAccountingTx(scripts: Script[]): Result<{ tx: AccountingTransaction; items: ChainItem[] }, EvidenceError> {
   if (scripts.length === 0) return { ok: false, error: schemaInvalid('scripts', 'no scripts') };
-  const payload = recognise(scripts[0] as Script);
-  if (!payload.ok) return { ok: false, error: schemaInvalid('scripts', 'first script is not a data envelope') };
-  const bytes = payload.value;
-  if (bytes.length < 2 || bytes[0] !== 0x01) return { ok: false, error: deserialiseTruncated() };
-  const kind = BYTE_TO_KIND[bytes[1] as number];
-  if (kind === undefined) return { ok: false, error: schemaInvalid('kind', `unknown kind byte ${bytes[1]}`) };
-  const count = readVarInt(bytes, 2);
-  if (!count.ok) return { ok: false, error: deserialiseTruncated() };
-  let off = count.value.nextOffset;
-  const n = Number(count.value.value);
-  const fields: AccountingField[] = [];
-  for (let i = 0; i < n; i++) {
-    const fieldResult = deserialiseField(bytes.subarray(off));
-    if (!fieldResult.ok) return fieldResult;
-    fields.push(fieldResult.value);
-    off += serialiseField(fieldResult.value).length;
-  }
-  return { ok: true, value: { kind, fields } };
+  const stream = unpackEnvelopes(scripts);
+  if (!stream.ok) return { ok: false, error: stream.error };
+  const decoded = decodeStream(stream.value);
+  if (!decoded.ok) return { ok: false, error: decoded.error };
+  const items = decoded.value;
+  const header = items.find((i) => i.type === 'header');
+  if (header === undefined || header.type !== 'header') return { ok: false, error: schemaInvalid('header', 'missing HEADER item') };
+  const kind = BYTE_TO_KIND[header.kind];
+  if (kind === undefined) return { ok: false, error: schemaInvalid('kind', `unknown kind byte ${header.kind}`) };
+  const fields = items
+    .filter((i): i is Extract<ChainItem, { type: 'field' }> => i.type === 'field')
+    .sort((a, b) => a.leafIndex - b.leafIndex)
+    .map((i) => ({ tag: i.tag, value: i.value }));
+  return { ok: true, value: { tx: { kind, fields }, items } };
 }
 
 // PER-FIELD SELECTIVE DISCLOSURE.
 export function discloseField(
   tx: AccountingTransaction,
   fieldIndex: number,
-): Result<{ field: AccountingField; proof: MerkleProof; root: Hash }, EvidenceError> {
+): Result<{ field: AccountingField; leafIndex: number; proof: MerkleProof; root: Hash }, EvidenceError> {
   const field = tx.fields[fieldIndex];
   if (field === undefined) return { ok: false, error: schemaInvalid('fieldIndex', 'out of range') };
   const leaves = fieldLeaves(tx);
@@ -206,9 +188,9 @@ export function discloseField(
   if (!proof.ok) return { ok: false, error: schemaInvalid('fieldIndex', 'out of range') };
   const root = computeRoot(leaves);
   if (!root.ok) return { ok: false, error: schemaInvalid('fields', 'empty') };
-  return { ok: true, value: { field, proof: proof.value, root: root.value } };
+  return { ok: true, value: { field, leafIndex: fieldIndex, proof: proof.value, root: root.value } };
 }
 
-export function verifyDisclosedField(field: AccountingField, proof: MerkleProof, root: Hash): VerifyResult<MerkleVerifyReason> {
-  return verifyProof(fieldLeaf(field), proof, root);
+export function verifyDisclosedField(leafIndex: number, field: AccountingField, proof: MerkleProof, root: Hash): VerifyResult<MerkleVerifyReason> {
+  return verifyProof(fieldLeaf(leafIndex, field), proof, root);
 }
