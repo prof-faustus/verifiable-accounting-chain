@@ -1,0 +1,27 @@
+{
+  "name": "@vaa/simstudy",
+  "version": "0.1.0",
+  "description": "Synthetic-population assurance study: inclusion, selective disclosure, recomputation, and fault injection over an AR roll-forward.",
+  "type": "module",
+  "bin": {
+    "vaa-simstudy": "./dist/main.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint": "tsc -b"
+  },
+  "dependencies": {
+    "@vaa/bsv": "*",
+    "@vaa/merkle": "*",
+    "@vaa/proofstore": "*",
+    "@vaa/evidence": "*"
+  }
+}

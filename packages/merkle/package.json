@@ -1,0 +1,21 @@
+{
+  "name": "@vaa/merkle",
+  "version": "0.1.0",
+  "description": "Merkle Proof Entity: intra-transaction field tree construction, proofs, and verification terminating in the BSV header chain.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint": "tsc -b"
+  },
+  "dependencies": {
+    "@vaa/bsv": "*"
+  }
+}

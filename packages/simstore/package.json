@@ -1,0 +1,26 @@
+{
+  "name": "@vaa/simstore",
+  "version": "0.1.0",
+  "description": "Storage and retrieval efficiency study, measured from the real populated proof store.",
+  "type": "module",
+  "bin": {
+    "vaa-simstore": "./dist/main.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint": "tsc -b"
+  },
+  "dependencies": {
+    "@vaa/bsv": "*",
+    "@vaa/merkle": "*",
+    "@vaa/proofstore": "*"
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "study": "assurance",
+  "seed": 1592594996,
+  "movements": 240,
+  "recordCount": 240,
+  "invoiceCount": 120,
+  "receiptCount": 60,
+  "creditNoteCount": 36,
+  "writeOffCount": 24,
+  "treeHeight": 8,
+  "predeterminedLevel": 3,
+  "anchoredSample": 240,
+  "rollForwardOk": true,
+  "cleanFalsePositives": 0,
+  "faults": [
+    {
+      "faultClass": "tamperedLeaf",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "wrongIndex",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "wrongRoot",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "missingFragment",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "alteredRecord",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "omittedRecord",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "duplicatedRecord",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    }
+  ],
+  "falseOriginDetected": false,
+  "selectiveDisclosureOk": true
+}

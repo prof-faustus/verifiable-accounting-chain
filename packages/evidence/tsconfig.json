@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../bsv" },
+    { "path": "../keys" },
+    { "path": "../chain" },
+    { "path": "../merkle" },
+    { "path": "../proofstore" }
+  ]
+}

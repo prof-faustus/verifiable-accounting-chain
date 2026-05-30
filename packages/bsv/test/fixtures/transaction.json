@@ -1,0 +1,69 @@
+{
+  "source": "Bitcoin (BSV) mainnet transaction 5a4b5b3af1e9fdfe0bf31787de37b4985c1625993f62129532ad35ede3616cef, block height 951357, retrieved from a public BSV explorer",
+  "txid": "5a4b5b3af1e9fdfe0bf31787de37b4985c1625993f62129532ad35ede3616cef",
+  "rawHex": "01000000054dfeb153ab73cc592f361ce1b740a4df93ee06a00ffce02ac2e0c2a625b5099f060000006a473044022007df26efdf1bc4fd514dae430bd28fbe586487480b02cae5121cd5aaea825f3202204215080e8ed9e15e5be69f0efcf8b8fc20510e81ec1a48d4e74ef5a58d912511412102b15e1909a042b0b76e5d16d210eb9893990fc7c5d642090879f0617da38e52d4ffffffffe6ab4f16cb95c0844f6fbae826b0905054a5bb87744ea717c038e8d603420ce8010000006a47304402207ed0afb12879de3dd54243853f41ed74f06b37c8ee715893f5e588fa367e5c1b02203730f6a1b59a9fc5da2e3ba65bcad8da08daf2503f35ef71dd40d5b3337eb540412102da2697c386ee8e048b5ae513194375ed391687e55d6104ca9f864962c413b733fffffffff425c15c489748b30c6bf37f8cd7f6ed09a45a7ba586f5fc3ac471af6cdac391000000006a473044022001b6cce2acf4fa863ac5e2e0cbd34604fdeb3e87646af7bd95a75e01e22a3c95022026f881ce0628332f3a031ee3b15ee5bb1929b6ec083dc3d3b4b4fffaa1ef373a412103171d5dafc4a2381a962d4426e6748b5865590ba3dc821ad50246ff37cea48597ffffffff4d51e5243b66f9e94351ca39b710a2d5badba71b984e5e96234e13b5f68ba850070000006a47304402204a46895093ea5c6747145f003f3a6fd099b1b4023ee6a3bec49728c46d76cb0f022034e6a52208f2a8fa7700e362abcfe975a0ce0705cb6575568503958c810e3c1a412102cdb906493ae41df527278440ddd8c0bfabda19d9a9fb7cb6f5f93b28e4975218ffffffffa27e51636db08f5be8a67d0d283e52e4b3f0cab3e0e0dc03d0d4e09937967cdb3b0000006a4730440220243e5b60e9b0a323c7419c836b5438ceb639e849853df4f39a637cabf02b9124022012bacdf1bf56e07f6a8134b6abbe1c3ddc3b5068338438e44ed1c0ae0ed0be234121033bc31936cc8471867339c46e6f1bcc31765152d49943289284472c0946c6bdcfffffffff0a002d3101000000001976a914233eec87694359369ad72edf42d737a156c6412888ac80969800000000001976a914bc813e92ff014035cf8333892f885ad8cec312ab88ac404b4c00000000001976a9142454d924c61a889ee36f4b4a7eee0f0951861f1e88ac40420f00000000001976a9149adb110b595488f79e63ff818a1855a314029c4288ac20a10700000000001976a914ba2acc26ee92fbba1456ec418152aea21eca9eb788ac400d0300000000001976a914b01245a9de793386695da364a149d356c93ce05a88ac400d0300000000001976a914fed7424174f6630dd63b29157b973945c4605c7188ac581b0000000000001976a914677688c83d94a1b1d2c7369ce45e5b07c59003ec88acb89d3b00000000001976a914a6dd35d42dc110a266e65de7d348f07fff716d9388ac0d000000000000001976a914e78b78caed6f2dfa10d9a603da1c338ce3ef5b7e88ac00000000",
+  "inputCount": 5,
+  "outputCount": 10,
+  "outputs": [
+    {
+      "position": 0,
+      "amountMinorUnits": "20000000",
+      "lockingScriptHex": "76a914233eec87694359369ad72edf42d737a156c6412888ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 1,
+      "amountMinorUnits": "10000000",
+      "lockingScriptHex": "76a914bc813e92ff014035cf8333892f885ad8cec312ab88ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 2,
+      "amountMinorUnits": "5000000",
+      "lockingScriptHex": "76a9142454d924c61a889ee36f4b4a7eee0f0951861f1e88ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 3,
+      "amountMinorUnits": "1000000",
+      "lockingScriptHex": "76a9149adb110b595488f79e63ff818a1855a314029c4288ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 4,
+      "amountMinorUnits": "500000",
+      "lockingScriptHex": "76a914ba2acc26ee92fbba1456ec418152aea21eca9eb788ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 5,
+      "amountMinorUnits": "200000",
+      "lockingScriptHex": "76a914b01245a9de793386695da364a149d356c93ce05a88ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 6,
+      "amountMinorUnits": "200000",
+      "lockingScriptHex": "76a914fed7424174f6630dd63b29157b973945c4605c7188ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 7,
+      "amountMinorUnits": "7000",
+      "lockingScriptHex": "76a914677688c83d94a1b1d2c7369ce45e5b07c59003ec88ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 8,
+      "amountMinorUnits": "3907000",
+      "lockingScriptHex": "76a914a6dd35d42dc110a266e65de7d348f07fff716d9388ac",
+      "lockingScriptLength": 25
+    },
+    {
+      "position": 9,
+      "amountMinorUnits": "13",
+      "lockingScriptHex": "76a914e78b78caed6f2dfa10d9a603da1c338ce3ef5b7e88ac",
+      "lockingScriptLength": 25
+    }
+  ]
+}

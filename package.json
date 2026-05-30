@@ -1,0 +1,44 @@
+{
+  "name": "verifiable-accounting-chain",
+  "version": "0.1.0",
+  "description": "BSV-native audit-evidence platform: a PKI-rooted, ECDH-linked, spend-linked transaction chain of triple-entry accounting records with per-field selective disclosure, mapped general ledger, and tax linkage — anchored on the Bitcoin (BSV) header chain.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "workspaces": [
+    "packages/bsv",
+    "packages/keys",
+    "packages/chain",
+    "packages/merkle",
+    "packages/proofstore",
+    "packages/evidence",
+    "packages/ledgermap",
+    "packages/tripleentry",
+    "packages/tax",
+    "packages/bundle",
+    "packages/api",
+    "packages/cli",
+    "packages/simstore",
+    "packages/simstudy"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "typecheck": "tsc -b",
+    "lint": "node scripts/format-check.mjs && node scripts/forbidden-scan.mjs",
+    "format:check": "node scripts/format-check.mjs",
+    "scan": "node scripts/forbidden-scan.mjs",
+    "test": "node scripts/run-tests.mjs",
+    "selftest": "node packages/cli/dist/index.js selftest",
+    "reproduce": "node packages/cli/dist/index.js reproduce",
+    "study:store": "node packages/simstore/dist/main.js --ci",
+    "study:assurance": "node packages/simstudy/dist/main.js --ci"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.10",
+    "typescript": "5.7.3"
+  }
+}

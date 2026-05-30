@@ -1,0 +1,21 @@
+{
+  "name": "@vaa/bsv",
+  "version": "0.1.0",
+  "description": "BSV primitives and node access: hashes, transactions, headers, the validated header chain, and pushdata script envelopes.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint": "tsc -b"
+  },
+  "dependencies": {
+    "@bsv/sdk": "2.1.4"
+  }
+}

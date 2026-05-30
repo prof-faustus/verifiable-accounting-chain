@@ -1,0 +1,13 @@
+{
+  "nodeEndpoint": "https://api.whatsonchain.com/v1/bsv/main",
+  "network": "mainnet",
+  "predeterminedLevel": 4,
+  "auth": {
+    "scheme": "apiKey",
+    "apiKeys": ["replace-with-a-configured-key"]
+  },
+  "rateLimit": {
+    "perMinute": 120
+  },
+  "logLevel": "info"
+}

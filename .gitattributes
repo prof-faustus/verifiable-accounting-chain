@@ -1,0 +1,4 @@
+# Enforce LF line endings everywhere for reproducible, byte-stable artifacts.
+* text=auto eol=lf
+*.png binary
+*.jpg binary

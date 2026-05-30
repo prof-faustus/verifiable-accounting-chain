@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install with the pinned lockfile
+        run: npm ci
+
+      - name: Forbidden-token scan (source, docs, config, lockfile, filenames, commits)
+        run: npm run scan
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Strict type-check and build (warnings are errors)
+        run: npm run build
+
+      - name: Full test suite
+        run: npm test
+
+      - name: Selftest every layer end to end
+        run: npm run selftest
+
+      - name: Reproduce all deterministic vectors and reported figures
+        run: npm run reproduce
+
+      - name: Storage / retrieval study (CI point)
+        run: npm run study:store
+
+      - name: Assurance study (CI point)
+        run: npm run study:assurance

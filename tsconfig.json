@@ -1,0 +1,19 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/bsv" },
+    { "path": "packages/keys" },
+    { "path": "packages/chain" },
+    { "path": "packages/merkle" },
+    { "path": "packages/proofstore" },
+    { "path": "packages/evidence" },
+    { "path": "packages/ledgermap" },
+    { "path": "packages/tripleentry" },
+    { "path": "packages/tax" },
+    { "path": "packages/bundle" },
+    { "path": "packages/api" },
+    { "path": "packages/cli" },
+    { "path": "packages/simstore" },
+    { "path": "packages/simstudy" }
+  ]
+}

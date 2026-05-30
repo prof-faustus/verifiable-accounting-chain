@@ -1,0 +1,25 @@
+{
+  "name": "@vaa/evidence",
+  "version": "0.1.0",
+  "description": "Accounting records to a Bitcoin (BSV) field tree: schemas, canonical serialisation, per-field selective disclosure, and recomputation checks.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint": "tsc -b"
+  },
+  "dependencies": {
+    "@vaa/bsv": "*",
+    "@vaa/keys": "*",
+    "@vaa/chain": "*",
+    "@vaa/merkle": "*",
+    "@vaa/proofstore": "*"
+  }
+}

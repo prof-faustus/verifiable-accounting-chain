@@ -1,0 +1,22 @@
+{
+  "name": "@vaa/proofstore",
+  "version": "0.1.0",
+  "description": "Selective Verification: index keys, non-overlapping proof shards, public proof-assistance, and the availability-only proof store.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "lint": "tsc -b"
+  },
+  "dependencies": {
+    "@vaa/bsv": "*",
+    "@vaa/merkle": "*"
+  }
+}

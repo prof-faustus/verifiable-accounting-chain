@@ -1,0 +1,16 @@
+{
+  "study": "storage",
+  "seed": 305419896,
+  "n": 256,
+  "q": 256,
+  "treeHeight": 8,
+  "predeterminedLevel": 4,
+  "baselineFullProofBytes": 65536,
+  "baselineRederivedBytes": 65536,
+  "shardedStoredBytes": 36364,
+  "duplicateAvoidedBytes": 29172,
+  "avoidedRatioPpm": 554871,
+  "proofAssistanceBytesPerRoot": 524,
+  "retrievalAdversarialBytes": 280,
+  "retrievalAssistedBytes": 140
+}

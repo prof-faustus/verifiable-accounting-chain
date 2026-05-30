@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "dist"
+  },
+  "include": ["src"],
+  "references": [
+    { "path": "../bsv" },
+    { "path": "../merkle" },
+    { "path": "../proofstore" },
+    { "path": "../evidence" },
+    { "path": "../api" },
+    { "path": "../simstore" },
+    { "path": "../simstudy" }
+  ]
+}

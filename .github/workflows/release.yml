@@ -1,0 +1,36 @@
+name: release
+
+# Semantic version tags drive releases. History is never rewritten; a tag is an
+# immutable marker on an already-merged commit. See docs/OPERATIONS.md for the
+# documented release process.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install with the pinned lockfile
+        run: npm ci
+
+      - name: Verify before releasing
+        run: |
+          npm run scan
+          npm run build
+          npm test
+          npm run reproduce
+
+      - name: Publish the GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true

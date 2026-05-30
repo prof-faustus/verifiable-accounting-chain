@@ -1,0 +1,16 @@
+{
+  "name": "@vaa/tax",
+  "version": "0.1.0",
+  "description": "Tax fields as mapped fields, tax recomputation over a period, and the tax-assertion bundle that reveals only the tax figures.",
+  "type": "module",
+  "exports": { ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" } },
+  "types": "./dist/index.d.ts",
+  "scripts": { "build": "tsc -b", "test": "node --test \"test/**/*.test.ts\"", "lint": "tsc -b" },
+  "dependencies": {
+    "@vaa/bsv": "*",
+    "@vaa/ledgermap": "*",
+    "@vaa/evidence": "*",
+    "@vaa/bundle": "*",
+    "@vaa/chain": "*"
+  }
+}

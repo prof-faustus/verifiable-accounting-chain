@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "src", "outDir": "dist" },
+  "include": ["src"],
+  "references": [
+    { "path": "../bsv" },
+    { "path": "../ledgermap" },
+    { "path": "../evidence" },
+    { "path": "../bundle" },
+    { "path": "../chain" }
+  ]
+}
