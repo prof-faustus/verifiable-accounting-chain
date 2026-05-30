@@ -35,6 +35,24 @@ zero-knowledge proof, range proof, or other hidden-value construction anywhere
 in the system — by design, because such constructions
 prove only a relationship among concealed numbers and are not audit evidence.
 
+## The PKI root and the provable chain (Pillars 1 and 2)
+
+A certified PKI root anchors the key hierarchy: every ledger node and field has a
+deterministic key under the root, and a verifier confirms a claimed node key by
+re-deriving the path from the published root (public-side derivation equals
+private-side). The transaction chain binds order: each link *spends* its
+predecessor and carries a signature from a key-series key that is a function of
+the root and of every preceding transaction's identity and committed root. So
+reordering, inserting, dropping, breaking the spend-link, or forging a signature
+is detectable by `chain.verifyChain` / `verifyLinkProof`.
+
+What the chain proves: that the produced transaction is a genuine link in the
+entity's single, ordered, root-anchored chain, and that its committed field root
+is the one bound into that link. What it does **not** prove: that a faithfully
+recorded figure reflects external reality (see the honest boundary). The chain
+binds identity and order; it does not replace the BSV header chain as the
+verification trust root — anchoring is still checked against a validated header.
+
 ## Trusted-operational mode is not adversarially sound
 
 The optional homomorphic compression of the proof-assistance node data

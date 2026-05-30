@@ -42,6 +42,12 @@ const PATTERNS = [
   ['fork-block-reference', phrase(f('block ') + f('170'))],
   ['fork-person-reference', phrase(f('hal ') + f('finney'))],
   ['unit-name', word(f('sato') + f('shi'))],
+  // No tool identity (Part 0.4): no build agent, assistant, or tooling provider name.
+  ['tool-identity-a', word(f('cla') + f('ude'))],
+  ['tool-identity-b', word(f('cop') + f('ilot'))],
+  ['tool-identity-c', word(f('chat') + f('gpt'))],
+  ['tool-identity-d', word(f('open') + f('ai'))],
+  ['tool-identity-e', word(f('anthro') + f('pic'))],
 ];
 
 const SKIP_DIRS = new Set(['.git', 'node_modules', 'dist']);

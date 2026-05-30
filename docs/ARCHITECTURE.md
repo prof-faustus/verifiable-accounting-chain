@@ -2,82 +2,85 @@
 
 ## What the system produces
 
-Admissible, examinable **audit evidence** about real accounting records: the
-genuine field(s) under examination, plus a proof that each is a committed part of
-an accounting transaction whose commitment is anchored, immutably and verifiably,
-on the Bitcoin (BSV) chain.
+Admissible, examinable **audit evidence**: the genuine accounting field(s) under
+examination, plus proofs that each is committed to an accounting transaction's
+field-tree root, mapped to its general-ledger position, recorded as a triple
+entry, a link in a PKI-rooted provable chain, and anchored immutably on the
+Bitcoin (BSV) chain — with everything else hidden. Verification terminates in a
+validated BSV block-header chain (`@vaa/bsv` `HeaderChain`); no service component
+is a trust root.
 
-## The two layers (and their patent origins)
+## The three pillars
 
-**Layer A — provable presence / inclusion (Merkle Proof Entity, WO 2022/100946).**
-Each field of an accounting transaction is a leaf; a Merkle path proves a given
-field-leaf belongs to that accounting transaction's committed root. The committing
-Bitcoin (BSV) transaction's own inclusion in a block is provable by the same
-primitive, so the field commitments inherit on-chain timestamping. **Verification
-terminates in the validated BSV header chain** (`@vaa/bsv` `HeaderChain`): a proof
-is valid only when its root is carried by a header in that chain.
+**Pillar 1 — PKI root + general-ledger key hierarchy** (`@vaa/keys`,
+EP3420669B1 + EP3259724B1 + US12256000B2 / Tartan 2021). A certified root key
+anchors the entity's accounting structure. Each ledger node and field has a
+deterministic sub-key derived by folding `child = parent + H(segment)` from the
+root; public-side derivation equals private-side, so a verifier can confirm a
+claimed node key from the published root alone.
 
-**Layer B — selective disclosure / proof-sharding (Selective Verification,
-WO 2025/119666).** The field-proof is split into non-overlapping **portions**
-(shards) with published **proof-assistance** node labels, addressable so a query
-returns only the portion needed for the field(s) requested. The holder discloses
-exactly the field under examination and the lower shard; the verifier completes
-the check from that shard plus public data, learning nothing about any other
-field or record. This is selective disclosure.
+**Pillar 2 — ECDH-linked, spend-linked, signed transaction chain** (`@vaa/chain`,
+EP3259724B1 + US12375287B2). Each accounting transaction *spends* the previous
+one (its input points at the predecessor's output) and carries a signature from a
+key-series key derived deterministically from the predecessor and the PKI root.
+Two reinforcing mechanisms — consensus-level spend ordering and a root-anchored
+key chain — make reorder/insert/drop/tamper detectable. `verifyLinks` /
+`verifyLinkProof` perform the checks; a `linkProof` binds one transaction into the
+chain without revealing any other transaction's field values.
 
-The optional homomorphic compression of the proof-assistance data (claims 9–11)
-is the **trusted-operational** mode: off by default, never accepted by the audit
-path, documented as not adversarially sound.
+**Pillar 3 — per-field selective disclosure over the field tree** (`@vaa/merkle`,
+`@vaa/proofstore`, WO2022100946 + WO2025119666). Each field is a Merkle leaf; the
+proof is sharded with published proof-assistance labels so a query returns only
+the portion for the field(s) requested.
 
-## The intra-transaction field tree (core data model)
+## The unified layers
+
+- **Field mapping** (`@vaa/ledgermap`, EP3420669B1): the chart of accounts is a
+  tree; every field maps to a path and a deterministic key under the structure
+  root; the versioned mapping root commits the structure for a period and travels
+  on-chain (MAPPING-ROOT item).
+- **Triple-entry** (`@vaa/tripleentry`): every event is a debit side, a credit
+  side, and the single shared on-chain entry both reference; reconciliation is by
+  construction and divergence/unmatched sides are detected.
+- **Tax linkage** (`@vaa/tax`): tax fields are mapped fields; tax positions
+  recompute from them; a tax bundle proves the declaration to the authority while
+  revealing only the tax figures.
+- **The auditor bundle** (`@vaa/bundle`): the tiny artifact tying it together —
+  disclosed field(s) + Merkle path(s) + chain-link proof + inclusion proof.
+
+## On-chain carriage (Part 5C-P3)
+
+The field set and all commitments travel as **pushdata in script**, inside
+`OP_FALSE OP_IF … OP_ENDIF` envelopes across the outputs of ONE Bitcoin (BSV)
+transaction, as a TLV stream of items 0x01–0x08. **OP_RETURN is never used.** The
+field leaf is the double-SHA256 of the exact FIELD-item body, so the on-chain
+bytes are the hashed bytes.
+
+## The fourteen packages
 
 ```
-accounting transaction
-   ├── field 0  ── leaf0 = doubleSha256( canonical(tag0, value0) )
-   ├── field 1  ── leaf1 = doubleSha256( canonical(tag1, value1) )
-   ├── …                       │
-   └── field n  ── leafn       │  Merkle tree over the fields
-                               ▼
-                         field-tree ROOT  ── carried as pushdata in script,
-                                             in ONE Bitcoin (BSV) transaction
-                                             (never OP_RETURN; root may be held
-                                              in parts across the scripts)
+bsv ─┬─ keys ── chain ─┐
+     ├─ merkle ─────────┼─ evidence ─┬─ ledgermap ── tax
+     └─ proofstore ─────┘            ├─ tripleentry
+                                     └─ bundle ── (api, cli)
+                          studies: simstore, simstudy
 ```
 
-Selective disclosure of field *i* = `{ field_i, merklePath(i), root }`. The
-auditor recomputes `leaf_i` from the disclosed field, folds the path, and checks
-it reconstructs the anchored root. No other field value is needed or revealed.
-
-## The eight packages
-
-```
-bsv  ──►  merkle  ──►  proofstore  ──►  evidence  ──►  api  ──►  cli
-  │          │             │              │
-  └──────────┴─────────────┴──────────────┴──────►  simstore, simstudy
-```
-
-- **bsv** — `Hash`, `doubleSha256`/`hashNode` (the only hashing sites), `Txid`,
-  `Script`, `Transaction`, `BlockHeader`, `HeaderChain` (the trust root),
-  `ScriptDataEnvelope` (pushdata; never `OP_RETURN`), `NodeClient`
-  (offline fixtures for CI; live Teranode-target client).
-- **merkle** — `buildTree`/`computeRoot`, `merkleProof`, `reconstructRoot`/
-  `verifyProof`, `proveAgainstChain` (anchors verification in the header chain).
-- **proofstore** — `IndexKey`, `shardProof`/`reassemble`, `ProofAssistance`,
-  `ProofStore` (`anchor`/`query`/`verify`/`verifyWithAssistance`), the optional
-  trusted-operational sum, retrieval-payload byte counters.
-- **evidence** — accounting object schemas, canonical versioned serialisation,
-  the field tree + per-field disclosure, index-map population, recomputation
-  checks (invoice total, AR roll-forward, debit/credit equality, bank
-  reconciliation, VAT).
-- **api** — config/auth/rate-limit/audit-log/schemas/handlers/server; the
-  `verify` handler uses only the adversarial path and terminates in the header
-  chain.
-- **cli** — `anchor`, `prove`, `verify`, `query`, `selftest`, `reproduce`.
-- **simstore** / **simstudy** — the two mandatory studies.
+- **bsv** — Hash/Txid/Script, doubleSha256/hashNode (only hashing sites),
+  BlockHeader, HeaderChain (trust root), the pushdata envelope, node access, and
+  the BSV-curve group-op wrappers.
+- **keys** / **chain** — Pillars 1 and 2.
+- **merkle** / **proofstore** — Pillar 3.
+- **evidence** — the field model, the Part 5C-P3 TLV encoding, chained
+  transactions, per-field disclosure, and the recomputation checks.
+- **ledgermap** / **tripleentry** / **tax** / **bundle** — the unified layers.
+- **api** / **cli** — the service and the `vaa` binary.
+- **simstore** / **simstudy** — the mandatory studies.
 
 ## The trust root
 
-`@vaa/bsv`'s `HeaderChain` is append-only and self-validating: every added header
-must link to the current tip and meet its target. `containsMerkleRoot` is the
-only authority that a root is anchored. Nothing outside the validated chain is
-trusted; the proof store is an availability and retrieval service only.
+`HeaderChain` is append-only and self-validating; `containsMerkleRoot` is the only
+authority that a root is anchored. The proof store and any off-chain proof store
+are availability/retrieval facilities only; the PKI root and the chain bind
+identity and order but do not replace the header chain as the verification trust
+root.
