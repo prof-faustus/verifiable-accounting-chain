@@ -5,3 +5,5 @@ export { FAULT_CLASSES, detectFault } from './faults.js';
 export type { FaultClass, StudyContext } from './faults.js';
 export { measureAssurance, ciVector, CI_M, REPORT_POINTS } from './measure.js';
 export type { AssuranceMeasurement, FaultSummary } from './measure.js';
+export { UNIFIED_FAULT_CLASSES, detectUnifiedFault, buildUnifiedContext, unifiedFalsePositives } from './chainfaults.js';
+export type { UnifiedFaultClass, UnifiedContext } from './chainfaults.js';

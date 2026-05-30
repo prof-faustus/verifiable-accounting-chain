@@ -29,3 +29,18 @@ test('H.6 T-study-4 the CI-point vector regenerates byte-identically', () => {
   const b = JSON.stringify(ciVector(measureAssurance(SEED, CI_M)));
   assert.equal(a, b);
 });
+
+test('5-P3 T-study-5 every unified fault class (chain/mapping/triple/tax) is detected', () => {
+  const m = measureAssurance(SEED, CI_M);
+  assert.equal(m.unifiedFaults.length, 14);
+  for (const f of m.unifiedFaults) {
+    assert.equal(f.injected, 1);
+    assert.equal(f.detected, 1, `${f.faultClass} should be detected`);
+    assert.equal(f.missed, 0);
+  }
+  // the chain-integrity classes are present
+  const classes = m.unifiedFaults.map((f) => f.faultClass);
+  for (const c of ['reorderedLink', 'insertedLink', 'droppedLink', 'tamperedLinkRoot', 'brokenSpendLink', 'badLinkSignature']) {
+    assert.ok(classes.includes(c), `${c} missing`);
+  }
+});

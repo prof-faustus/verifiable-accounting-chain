@@ -13,6 +13,7 @@ import { buildPopulation, rollForwardArrays, SEED } from './population.js';
 import type { ArPopulation } from './population.js';
 import { FAULT_CLASSES, detectFault } from './faults.js';
 import type { StudyContext } from './faults.js';
+import { UNIFIED_FAULT_CLASSES, detectUnifiedFault, buildUnifiedContext, unifiedFalsePositives } from './chainfaults.js';
 
 const CI_M = 240;
 const REPORT_POINTS = [100000];
@@ -82,6 +83,7 @@ export interface AssuranceMeasurement {
   rollForwardOk: boolean;
   cleanFalsePositives: number;
   faults: FaultSummary[];
+  unifiedFaults: FaultSummary[];
   falseOriginDetected: boolean;
   selectiveDisclosureOk: boolean;
   inclusionGenVerifyMedianMs: number;
@@ -112,9 +114,17 @@ export function measureAssurance(seed: number, movements: number): AssuranceMeas
   }
   if (!rollForwardOk) cleanFalsePositives++;
 
-  // Fault injection.
+  // Fault injection (field/inclusion).
   const faults: FaultSummary[] = FAULT_CLASSES.map((cls) => {
     const detected = detectFault(ctx, cls) ? 1 : 0;
+    return { faultClass: cls, injected: 1, detected, missed: 1 - detected };
+  });
+
+  // Unified fault matrix (chain / mapping / triple-entry / tax).
+  const unified = buildUnifiedContext(seed);
+  cleanFalsePositives += unifiedFalsePositives(unified);
+  const unifiedFaults: FaultSummary[] = UNIFIED_FAULT_CLASSES.map((cls) => {
+    const detected = detectUnifiedFault(unified, cls) ? 1 : 0;
     return { faultClass: cls, injected: 1, detected, missed: 1 - detected };
   });
 
@@ -158,6 +168,7 @@ export function measureAssurance(seed: number, movements: number): AssuranceMeas
     rollForwardOk,
     cleanFalsePositives,
     faults,
+    unifiedFaults,
     falseOriginDetected,
     selectiveDisclosureOk,
     inclusionGenVerifyMedianMs: samples[Math.floor(samples.length / 2)] ?? 0,
@@ -180,6 +191,7 @@ export function ciVector(m: AssuranceMeasurement): Record<string, unknown> {
     rollForwardOk: m.rollForwardOk,
     cleanFalsePositives: m.cleanFalsePositives,
     faults: m.faults,
+    unifiedFaults: m.unifiedFaults,
     falseOriginDetected: m.falseOriginDetected,
     selectiveDisclosureOk: m.selectiveDisclosureOk,
   };

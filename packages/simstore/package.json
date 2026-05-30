@@ -20,7 +20,11 @@
   },
   "dependencies": {
     "@vaa/bsv": "*",
+    "@vaa/keys": "*",
+    "@vaa/chain": "*",
     "@vaa/merkle": "*",
-    "@vaa/proofstore": "*"
+    "@vaa/proofstore": "*",
+    "@vaa/evidence": "*",
+    "@vaa/bundle": "*"
   }
 }

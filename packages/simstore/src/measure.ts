@@ -5,6 +5,7 @@ import type { Hash } from '@vaa/bsv';
 import { heightForLeafCount, merkleProof } from '@vaa/merkle';
 import { ProofStore, retrievalBytesAdversarial, retrievalBytesAssisted } from '@vaa/proofstore';
 import { deterministicLeaves, deterministicSample, keyForIndex } from './population.js';
+import { measureBundleSizes } from './bundlesize.js';
 
 export function chooseLevel(n: number): number {
   const height = heightForLeafCount(n);
@@ -129,5 +130,10 @@ export function ciVector(m: StorageMeasurement): Record<string, number | string>
     proofAssistanceBytesPerRoot: m.proofAssistanceBytesPerRoot,
     retrievalAdversarialBytes: m.retrievalAdversarialBytes,
     retrievalAssistedBytes: m.retrievalAssistedBytes,
+    // auditor bundle: the field path is log-sized and the disclosed field count is
+    // constant, both independent of the transaction's total field count.
+    bundleFieldCounts: measureBundleSizes().map((b) => b.fieldCount).join(','),
+    bundlePathSiblings: measureBundleSizes().map((b) => b.pathSiblings).join(','),
+    bundleDisclosedFields: 1,
   };
 }

@@ -56,6 +56,92 @@
       "missed": 0
     }
   ],
+  "unifiedFaults": [
+    {
+      "faultClass": "reorderedLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "insertedLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "droppedLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "tamperedLinkRoot",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "brokenSpendLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "badLinkSignature",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "misMappedField",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "wrongMappingRoot",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "unmatchedDebit",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "unmatchedCredit",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "sideVsSharedDivergence",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "sideNotReferencingShared",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "taxFigureInconsistentWithMappedFields",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "rateNotPermitted",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    }
+  ],
   "falseOriginDetected": false,
   "selectiveDisclosureOk": true
 }

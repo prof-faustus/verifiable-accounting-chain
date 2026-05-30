@@ -12,5 +12,8 @@
   "avoidedRatioPpm": 554871,
   "proofAssistanceBytesPerRoot": 524,
   "retrievalAdversarialBytes": 280,
-  "retrievalAssistedBytes": 140
+  "retrievalAssistedBytes": 140,
+  "bundleFieldCounts": "256,4096",
+  "bundlePathSiblings": "8,12",
+  "bundleDisclosedFields": 1
 }

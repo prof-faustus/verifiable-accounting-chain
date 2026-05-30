@@ -7,7 +7,11 @@
   "include": ["src"],
   "references": [
     { "path": "../bsv" },
+    { "path": "../keys" },
+    { "path": "../chain" },
     { "path": "../merkle" },
-    { "path": "../proofstore" }
+    { "path": "../proofstore" },
+    { "path": "../evidence" },
+    { "path": "../bundle" }
   ]
 }

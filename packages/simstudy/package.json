@@ -20,8 +20,14 @@
   },
   "dependencies": {
     "@vaa/bsv": "*",
+    "@vaa/keys": "*",
+    "@vaa/chain": "*",
     "@vaa/merkle": "*",
     "@vaa/proofstore": "*",
-    "@vaa/evidence": "*"
+    "@vaa/evidence": "*",
+    "@vaa/ledgermap": "*",
+    "@vaa/tripleentry": "*",
+    "@vaa/tax": "*",
+    "@vaa/bundle": "*"
   }
 }
