@@ -22,7 +22,12 @@ npm run study:assurance # assurance study, CI point
   (block hash, ordered txids, expected merkle root; the vector carries a BSV
   `source` field — it is genuine data, never fabricated);
 - the storage-study CI point, `vectors/study/storage_<N>.json`;
-- the assurance-study CI point, `vectors/study/simstudy_<M>.json`.
+- the assurance-study CI point, `vectors/study/simstudy_<M>.json`;
+- the chain/bundle vector, `vectors/chain/chain_v1.json` (seed `chain-vector`):
+  the chain head and per-link public keys, and a disclosed field's field-tree root
+  and Merkle path. These are pure EC derivations and hash folds — fully
+  deterministic and independent of signature randomness (no signatures are stored;
+  `reproduce` rebuilds the chain, confirms it verifies, and diffs the public values).
 
 It exits non-zero on any mismatch.
 

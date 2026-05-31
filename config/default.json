@@ -9,5 +9,9 @@
   "rateLimit": {
     "perMinute": 120
   },
-  "logLevel": "info"
+  "logLevel": "info",
+  "pkiRoot": {
+    "provider": "external",
+    "comment": "Use provider 'seed' with PKI_ROOT_SEED for test/dev; 'external' defers to a managed/HSM-held root supplied at runtime."
+  }
 }

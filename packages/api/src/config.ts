@@ -12,6 +12,10 @@ export interface AppConfig {
   auth: { scheme: 'apiKey' | 'jwt'; credentials: string[] };
   rateLimit: { perMinute: number };
   logLevel: string;
+  // The PKI root provider (Pillar 1). "seed" derives the root deterministically
+  // from a configured seed (test/dev); "external" defers to a managed/HSM-held
+  // root supplied at runtime (the seed is then not required).
+  pkiRoot: { provider: 'seed' | 'external'; seed?: string };
 }
 
 export type Env = Record<string, string | undefined>;
@@ -48,6 +52,12 @@ export function loadConfig(env: Env): Result<AppConfig, ApiError> {
 
   const logLevel = env['LOG_LEVEL'] ?? 'info';
 
+  const pkiProvider = env['PKI_ROOT_PROVIDER'] ?? 'external';
+  if (pkiProvider !== 'seed' && pkiProvider !== 'external') return err(internal('PKI_ROOT_PROVIDER must be seed or external'));
+  const pkiSeed = env['PKI_ROOT_SEED'];
+  if (pkiProvider === 'seed' && (pkiSeed === undefined || pkiSeed.trim() === '')) return err(internal('PKI_ROOT_SEED is required when PKI_ROOT_PROVIDER is seed'));
+  const pkiRoot: AppConfig['pkiRoot'] = pkiProvider === 'seed' ? { provider: 'seed', seed: (pkiSeed as string).trim() } : { provider: 'external' };
+
   return ok({
     nodeEndpoint: nodeEndpoint.trim(),
     network,
@@ -55,5 +65,6 @@ export function loadConfig(env: Env): Result<AppConfig, ApiError> {
     auth: { scheme, credentials },
     rateLimit: { perMinute: perMinute.value },
     logLevel,
+    pkiRoot,
   });
 }

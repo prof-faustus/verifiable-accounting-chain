@@ -20,7 +20,21 @@ test('E.2 T-cfg-1 valid env -> AppConfig', () => {
     assert.equal(r.value.predeterminedLevel, 4);
     assert.deepEqual(r.value.auth.credentials, ['k1', 'k2']);
     assert.equal(r.value.rateLimit.perMinute, 120);
+    assert.equal(r.value.pkiRoot.provider, 'external');
   }
+});
+
+test('E.2 T-cfg-1b the PKI root provider is configured', () => {
+  const seeded = loadConfig({ ...valid, PKI_ROOT_PROVIDER: 'seed', PKI_ROOT_SEED: 'entity-seed' });
+  assert.equal(seeded.ok, true);
+  if (seeded.ok) {
+    assert.equal(seeded.value.pkiRoot.provider, 'seed');
+    assert.equal(seeded.value.pkiRoot.seed, 'entity-seed');
+  }
+  // provider 'seed' without a seed fails fast
+  assert.equal(loadConfig({ ...valid, PKI_ROOT_PROVIDER: 'seed' }).ok, false);
+  // an unknown provider fails
+  assert.equal(loadConfig({ ...valid, PKI_ROOT_PROVIDER: 'magic' }).ok, false);
 });
 
 test('E.2 T-cfg-2 each missing/invalid field fails', () => {

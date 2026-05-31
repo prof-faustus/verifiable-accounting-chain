@@ -1,0 +1,27 @@
+{
+  "seed": "chain-vector",
+  "entity": "entity",
+  "period": "period",
+  "genesisMsgHex": "4881202cebdc270f564abb08bc4680a7377415c48827c2eae2977715eed8225d",
+  "headPubHex": "0360de31a9ddf6a8cafabca4a8612403c20b4658ba88dfda3f194b891c83b44e23",
+  "linkPubsHex": [
+    "0360de31a9ddf6a8cafabca4a8612403c20b4658ba88dfda3f194b891c83b44e23",
+    "02bb308faffb2d51d51658d8c011a4f2dc2beae9c8b5e72052c3ead06a34b1a669",
+    "02a635f4f63725d86c96398e195108f208a75b5ec01705f94676773af1af4090ed",
+    "02fd7555b3e9eb83017007ac458cd60a4174ffe3af7f9df8fcf1f60b6e0907ebf8",
+    "03136846f57fbef534ddaaea873f11984730b3b2a7b4b5d814f40139789654d377"
+  ],
+  "chainVerifies": true,
+  "invoiceFieldCount": 64,
+  "discloseIndex": 1,
+  "bundleFieldTreeRootHex": "7978ffc7fac626d8ff4c2c11a3918d7fedd0a196090cd37bd576c52061e8160e",
+  "bundleFieldLeafIndex": 1,
+  "bundleFieldPathHex": [
+    "8f657feed8310cdb541256a4be43262e3dffdad81e770747bb5dae523568fd17",
+    "5bbb3623b68f0ecc996337ec893f14184323e6d0ad02c1ade2646a95e239cb5b",
+    "d0fe73586a51f6bac3e4d6d2c1900b4e7db627dbf9e6ad7193e5a7c92520b9ba",
+    "d9f34f94e67bd59a88aa5de8c89003c1edb6cdde63f767706faf8c3c31997ef5",
+    "cee1875e55f5cd65e442fce1eb47bb0025a10caf596ef7fec6d0772499a51318",
+    "f38df4a0e7a2f736477f880de384e5048fc3c652dd13b5d15708f4c1cc8a4948"
+  ]
+}

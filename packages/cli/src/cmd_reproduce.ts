@@ -3,7 +3,7 @@
 import { join } from 'node:path';
 import { HashOps, TxidOps } from '@vaa/bsv';
 import { computeRoot } from '@vaa/merkle';
-import { measureStorage, ciVector as storageVector, SEED as STORAGE_SEED } from '@vaa/simstore';
+import { measureStorage, ciVector as storageVector, SEED as STORAGE_SEED, buildChainVector } from '@vaa/simstore';
 import { measureAssurance, ciVector as assuranceVector, SEED as ASSURANCE_SEED, CI_M } from '@vaa/simstudy';
 import { readJsonFile, repoRoot, must } from './args.js';
 
@@ -42,6 +42,9 @@ export function runReproduce(): number {
 
   // 3) Assurance study CI vector.
   checks.push(diffJson('study/simstudy_240', assuranceVector(measureAssurance(ASSURANCE_SEED, CI_M)), join(repoRoot(), 'vectors', 'study', `simstudy_${CI_M}.json`)));
+
+  // 4) Deterministic chain/bundle vector (head + per-link pubs + disclosed-field path).
+  checks.push(diffJson('chain/chain_v1', buildChainVector(), join(repoRoot(), 'vectors', 'chain', 'chain_v1.json')));
 
   let allOk = true;
   for (const c of checks) {

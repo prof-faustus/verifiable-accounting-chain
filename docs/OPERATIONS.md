@@ -20,9 +20,14 @@ invalid config. Defaults are in `config/default.json`. Fields:
 | `auth.scheme` | `apiKey` or `jwt`; the credential set is configured, not hard-coded. |
 | `rateLimit.perMinute` | Per-caller request budget. |
 | `logLevel` | Structured-log threshold. |
+| `pkiRoot.provider` | The PKI root provider (Pillar 1): `seed` (deterministic from `PKI_ROOT_SEED`, test/dev) or `external` (a managed/HSM-held root supplied at runtime). |
 
-Override by pointing the loader at a different config file or environment values
-(see `@vaa/api` `loadConfig`). Never commit real credentials.
+Environment keys mirror the fields: `NODE_ENDPOINT`, `NETWORK`,
+`PREDETERMINED_LEVEL`, `AUTH_SCHEME`, `AUTH_CREDENTIALS`, `RATE_LIMIT_PER_MINUTE`,
+`LOG_LEVEL`, `PKI_ROOT_PROVIDER`, and `PKI_ROOT_SEED` (required when the provider
+is `seed`). The service fails fast if any is missing or invalid. Override by
+pointing the loader at a different config file or environment values (see
+`@vaa/api` `loadConfig`). Never commit real credentials or a production root seed.
 
 ## Running the service
 
@@ -36,17 +41,23 @@ Endpoints:
 - `POST /prove` — Merkle proof for a data item.
 - `POST /query` — the queried item's fragment only.
 - `POST /verify` — audit-path verification, terminating in the header chain.
-- `GET /healthz` — liveness.
-- `GET /readyz` — readiness.
+- `POST /chain/append` — append an accounting transaction as the next chain link (Pillar 2).
+- `GET /chain/verify` — verify the whole chain (rooted at the PKI key).
+- `POST /bundle/issue` — issue a tiny auditor proof bundle for requested fields.
+- `POST /bundle/verify` — verify a proof bundle (inclusion + chain + anchor), terminating in the header chain.
+- `GET /healthz` / `GET /readyz` — liveness / readiness.
 
-All requests are schema-validated, authenticated, rate-limited, and (for proof
-responses) audit-logged with metadata only.
+`verify` and `bundle/verify` use only the adversarial path and refuse any
+trusted-operational result. The `chain/*` operations are served by a single-period
+`ChainService` that signs links from the configured PKI root. All requests are
+schema-validated, authenticated, rate-limited, and (for proof/bundle responses)
+audit-logged with metadata only — never field values.
 
 ## Container
 
 ```
-docker build -t verifiable-accounting-bsv .
-docker run --rm verifiable-accounting-bsv selftest
+docker build -t verifiable-accounting-chain .
+docker run --rm verifiable-accounting-chain selftest
 ```
 
 The image entry point is the `vaa` CLI; override the command to run the service
