@@ -1,0 +1,9 @@
+
+> verifiable-accounting-chain@0.1.0 reproduce
+> node packages/cli/dist/index.js reproduce
+
+OK   merkle/bsv_block_v1: recomputed root matches published merkle root
+OK   study/storage_256: match
+OK   study/simstudy_240: match
+OK   chain/chain_v1: match
+reproduce: all vectors match

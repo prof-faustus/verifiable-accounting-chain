@@ -1,0 +1,5 @@
+
+> verifiable-accounting-chain@0.1.0 scan
+> node scripts/forbidden-scan.mjs
+
+Forbidden-token scan passed: no prohibited token in source, docs, config, lockfile, filenames, or commit messages.

@@ -1,0 +1,17 @@
+
+> verifiable-accounting-chain@0.1.0 selftest
+> node packages/cli/dist/index.js selftest
+
+PASS bsv: genuine block header hashes to its published block hash and validates
+PASS merkle: reconstructs the genuine block merkle root
+PASS proofstore: anchor/query/verify and selective disclosure hold; trusted-operational refused
+PASS evidence: field tree, per-field disclosure, and recomputation check hold
+PASS keys: public-side derivation matches private; PKI sign/verify holds
+PASS chain: spend-linked, key-series-signed chain verifies; reorder/tamper detected
+PASS bundle: a tiny bundle proves inclusion + chain + anchor for one disclosed field
+PASS ledgermap: fields map to root-anchored keys; the mapping root commits the structure
+PASS tripleentry: debit/credit reconcile to the shared anchored on-chain entry
+PASS tax: tax fields recompute over mapped fields to the declared position
+PASS api: config, auth, health, and the anchor endpoint respond
+PASS studies: storage and assurance studies pass their CI checks
+selftest: all layers passed

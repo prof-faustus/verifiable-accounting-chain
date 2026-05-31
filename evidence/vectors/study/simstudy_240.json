@@ -1,0 +1,147 @@
+{
+  "study": "assurance",
+  "seed": 1592594996,
+  "movements": 240,
+  "recordCount": 240,
+  "invoiceCount": 120,
+  "receiptCount": 60,
+  "creditNoteCount": 36,
+  "writeOffCount": 24,
+  "treeHeight": 8,
+  "predeterminedLevel": 3,
+  "anchoredSample": 240,
+  "rollForwardOk": true,
+  "cleanFalsePositives": 0,
+  "faults": [
+    {
+      "faultClass": "tamperedLeaf",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "wrongIndex",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "wrongRoot",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "missingFragment",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "alteredRecord",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "omittedRecord",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "duplicatedRecord",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    }
+  ],
+  "unifiedFaults": [
+    {
+      "faultClass": "reorderedLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "insertedLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "droppedLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "tamperedLinkRoot",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "brokenSpendLink",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "badLinkSignature",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "misMappedField",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "wrongMappingRoot",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "unmatchedDebit",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "unmatchedCredit",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "sideVsSharedDivergence",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "sideNotReferencingShared",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "taxFigureInconsistentWithMappedFields",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    },
+    {
+      "faultClass": "rateNotPermitted",
+      "injected": 1,
+      "detected": 1,
+      "missed": 0
+    }
+  ],
+  "falseOriginDetected": false,
+  "selectiveDisclosureOk": true
+}

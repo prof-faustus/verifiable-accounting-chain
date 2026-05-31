@@ -1,0 +1,6 @@
+
+> verifiable-accounting-chain@0.1.0 study:store
+> node packages/simstore/dist/main.js --ci
+
+STORAGE {"study":"storage","seed":305419896,"n":256,"q":256,"treeHeight":8,"predeterminedLevel":4,"baselineFullProofBytes":65536,"baselineRederivedBytes":65536,"shardedStoredBytes":36364,"duplicateAvoidedBytes":29172,"avoidedRatioPpm":554871,"proofAssistanceBytesPerRoot":524,"retrievalAdversarialBytes":280,"retrievalAssistedBytes":140,"verifyTime":{"medianMs":0.05319999999983338,"minMs":0.04519999999956781,"maxMs":0.5962000000004082},"verifyWithAssistanceTime":{"medianMs":0.12339999999994689,"minMs":0.1101000000003296,"maxMs":0.35609999999996944}}
+STORAGE_VECTOR_WRITTEN vectors\study\storage_256.json

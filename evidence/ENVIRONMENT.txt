@@ -1,0 +1,5 @@
+Evaluation environment
+Generated: 2026-05-31 18:25:10 +07:00
+Node: v24.16.0
+OS: Microsoft Windows 11 Pro for Workstations
+OS version: Microsoft Windows NT 10.0.26200.0
