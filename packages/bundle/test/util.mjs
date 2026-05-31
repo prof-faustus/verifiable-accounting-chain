@@ -4,6 +4,7 @@
 // (easy target so its hash meets target without mining); it is not presented as
 // genuine block data.
 import { HashOps, TxidOps, doubleSha256, HeaderChain, meetsTarget } from '@vaa/bsv';
+import { computeRoot, merkleProof } from '@vaa/merkle';
 import { numericValue, stringValue, fieldTreeRoot } from '@vaa/evidence';
 import { rootFromSeed, sign as keysSign } from '@vaa/keys';
 import { TransactionChain, genesisMessage, deriveHeadPriv, deriveNextPriv, linkMessage } from '@vaa/chain';
@@ -65,4 +66,38 @@ export function buildScenario(fieldCount, vatIndex) {
 
 export function issueVatBundle(s) {
   return issueBundle(s.tx, [s.vatIndex], s.chain, s.chainIndex, { inclusion: s.inclusion });
+}
+
+// Like buildScenario but the committing transaction is anchored via a GENUINE,
+// non-trivial Merkle inclusion proof: a multi-transaction block in which our tx
+// sits at `posInBlock`, so the inclusion path has real sibling hashes that the
+// verifier must fold to the block root. (The block header is still a synthetic
+// test double for the easy target; the inclusion path itself is real.)
+export function buildScenarioMultiInclusion(fieldCount, vatIndex, blockSize, posInBlock) {
+  const tx = invoiceWithVat(fieldCount, vatIndex);
+  const root = fieldTreeRoot(tx).value;
+
+  const { rootPriv, rootPub } = rootFromSeed(enc('bundle-entity-multi'));
+  const genesisMsg = genesisMessage(enc('entity'), enc('period'));
+  const chain = new TransactionChain(rootPub, genesisMsg);
+  const txid0 = txidAt(0);
+  const root0 = doubleSha256(enc('genesis-root'));
+  const priv0 = deriveHeadPriv(rootPriv, genesisMsg);
+  chain.append(txid0, root0, undefined, (_i, m) => keysSign(priv0, m));
+  const ourTxid = txidAt(1);
+  const priv1 = deriveNextPriv(priv0, linkMessage(txid0, root0, root));
+  chain.append(ourTxid, root, { txid: txid0, vout: 0 }, (_i, m) => keysSign(priv1, m));
+
+  // a block of `blockSize` transactions; ours is at posInBlock.
+  const blockTxids = [];
+  for (let i = 0; i < blockSize; i++) blockTxids.push(i === posInBlock ? ourTxid : txidAt(100 + i));
+  const leaves = blockTxids.map((t) => TxidOps.asHash(t));
+  const blockRoot = computeRoot(leaves).value;
+  const merklePath = merkleProof(leaves, posInBlock).value;
+
+  const headerChain = new HeaderChain();
+  headerChain.add(syntheticHeaderFor(blockRoot));
+  const inclusion = { txid: ourTxid, merklePath };
+
+  return { tx, vatIndex, chain, chainIndex: 1, rootPub, genesisMsg, headerChain, inclusion, pathSiblings: merklePath.siblings.length };
 }

@@ -33,6 +33,7 @@ export {
 export type { AppContext, VerifyOutcome, StoredProofJson, ChainBackend } from './handlers.js';
 export { anchor, prove, query, verify } from './handlers.js';
 
+export type { ChainRecord } from './chainhandlers.js';
 export { ChainService, chainAppend, chainVerify, bundleIssue, bundleVerify } from './chainhandlers.js';
 export { bundleToJson, bundleFromJson } from './bundlecodec.js';
 

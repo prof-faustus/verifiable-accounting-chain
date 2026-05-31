@@ -14,14 +14,31 @@ import type { AppContext, ChainBackend, VerifyOutcome } from './handlers.js';
 import { parseAnchorRequest } from './schemas.js';
 import { bundleToJson, bundleFromJson } from './bundlecodec.js';
 
-// A single-period in-memory chain with server-side signing from the PKI root.
+// One appended record (the replay log): the inputs that deterministically
+// reproduce a link. Signing is deterministic (RFC6979), so replaying these
+// rebuilds a byte-identical, verifying chain.
+export interface ChainRecord {
+  txidHex: string;
+  fieldRootHex: string;
+  prevVout?: number;
+}
+
+// A single-period chain with server-side signing from the PKI root. Robustness:
+// appends are atomic and guarded against re-entrancy; a txid may appear at most
+// once; the chain length is bounded; and the full input log can be snapshotted
+// and replayed to recover the chain across a restart.
 export class ChainService implements ChainBackend {
+  static readonly MAX_LINKS = 1_000_000;
+
   private readonly rootProvider: RootProvider;
   private readonly genesisMsg: Hash;
   private readonly chain: TransactionChain;
   private runningPriv: Scalar = 0n;
   private lastTxid: Txid | undefined;
   private lastFieldRoot: Hash | undefined;
+  private readonly seenTxids = new Set<string>();
+  private readonly records: ChainRecord[] = [];
+  private appending = false;
 
   constructor(seed: Uint8Array, entityId: Uint8Array, periodId: Uint8Array) {
     this.rootProvider = { rootKeyPair: () => rootFromSeed(seed) };
@@ -38,26 +55,64 @@ export class ChainService implements ChainBackend {
   getChain(): TransactionChain {
     return this.chain;
   }
+  length(): number {
+    return this.chain.links().length;
+  }
+
+  // The replay log of appended inputs (for persistence / recovery).
+  snapshot(): ChainRecord[] {
+    return this.records.map((r) => ({ ...r }));
+  }
+
+  // Rebuild a chain by replaying a snapshot's inputs against the same root.
+  static replay(seed: Uint8Array, entityId: Uint8Array, periodId: Uint8Array, records: ChainRecord[]): Result<ChainService, ApiError> {
+    const svc = new ChainService(seed, entityId, periodId);
+    for (const rec of records) {
+      const txid = TxidOps.fromDisplayHex(rec.txidHex);
+      const fieldRoot = HashOps.fromDisplayHex(rec.fieldRootHex);
+      if (!txid.ok) return err(badRequest('snapshot.txidHex', 'invalid'));
+      if (!fieldRoot.ok) return err(badRequest('snapshot.fieldRootHex', 'invalid'));
+      const r = svc.append(txid.value, fieldRoot.value, rec.prevVout);
+      if (!r.ok) return err(r.error);
+    }
+    return ok(svc);
+  }
 
   append(txid: Txid, fieldRoot: Hash, prevVout: number | undefined): Result<{ index: number; linkPubHex: string; signatureHex: string }, ApiError> {
+    if (this.appending) return err(badRequest('chain', 're-entrant append'));
     const index = this.chain.links().length;
-    const { rootPriv } = this.rootProvider.rootKeyPair();
-    let priv: Scalar;
-    let prevOutpoint: { txid: Txid; vout: number } | undefined;
-    if (index === 0) {
-      priv = deriveHeadPriv(rootPriv, this.genesisMsg);
-      prevOutpoint = undefined;
-    } else {
-      if (this.lastTxid === undefined || this.lastFieldRoot === undefined) return err(badRequest('chain', 'no predecessor'));
-      priv = deriveNextPriv(this.runningPriv, linkMessage(this.lastTxid, this.lastFieldRoot, fieldRoot));
-      prevOutpoint = { txid: this.lastTxid, vout: prevVout ?? 0 };
+    if (index >= ChainService.MAX_LINKS) return err(badRequest('chain', 'chain length bound reached'));
+    const txidHex = TxidOps.toDisplayHex(txid);
+    if (this.seenTxids.has(txidHex)) return err(badRequest('chain', 'duplicate txid'));
+    if (prevVout !== undefined && (!Number.isInteger(prevVout) || prevVout < 0)) return err(badRequest('prevVout', 'must be a non-negative integer'));
+
+    this.appending = true;
+    try {
+      const { rootPriv } = this.rootProvider.rootKeyPair();
+      let priv: Scalar;
+      let prevOutpoint: { txid: Txid; vout: number } | undefined;
+      if (index === 0) {
+        priv = deriveHeadPriv(rootPriv, this.genesisMsg);
+        prevOutpoint = undefined;
+      } else {
+        if (this.lastTxid === undefined || this.lastFieldRoot === undefined) return err(badRequest('chain', 'no predecessor'));
+        priv = deriveNextPriv(this.runningPriv, linkMessage(this.lastTxid, this.lastFieldRoot, fieldRoot));
+        prevOutpoint = { txid: this.lastTxid, vout: prevVout ?? 0 };
+      }
+      const r = this.chain.append(txid, fieldRoot, prevOutpoint, (_i, m) => keysSign(priv, m));
+      if (!r.ok) return err(badRequest('chain', r.error.kind));
+      // commit the new state only after a successful append
+      this.runningPriv = priv;
+      this.lastTxid = txid;
+      this.lastFieldRoot = fieldRoot;
+      this.seenTxids.add(txidHex);
+      const rec: ChainRecord = { txidHex, fieldRootHex: HashOps.toDisplayHex(fieldRoot) };
+      if (prevVout !== undefined) rec.prevVout = prevVout;
+      this.records.push(rec);
+      return ok({ index: r.value.index, linkPubHex: pointToHex(r.value.linkPub), signatureHex: toHexLower(r.value.signature) });
+    } finally {
+      this.appending = false;
     }
-    const r = this.chain.append(txid, fieldRoot, prevOutpoint, (_i, m) => keysSign(priv, m));
-    if (!r.ok) return err(badRequest('chain', r.error.kind));
-    this.runningPriv = priv;
-    this.lastTxid = txid;
-    this.lastFieldRoot = fieldRoot;
-    return ok({ index: r.value.index, linkPubHex: pointToHex(r.value.linkPub), signatureHex: toHexLower(r.value.signature) });
   }
 
   verify(): VerifyOutcome {

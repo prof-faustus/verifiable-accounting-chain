@@ -112,15 +112,32 @@ transaction's field VALUES.
   chain + anchor (via `@vaa/bundle`) with mapping and recompute. Permitted VAT
   rates are basis points in a configured set.
 
-## D11 — Test doubles for the anchor
+## D11 — Anchoring and the chain service (robustness)
 
-Where a test needs the committing transaction anchored, it uses a SYNTHETIC block
-header (an easy compact target so its hash meets target without mining) carrying
-the relevant merkle root, or a single-transaction block whose merkle root is the
-txid. These are clearly-labelled test doubles for the header-chain interface —
-not presented as genuine BSV block data. The genuine-block anchoring path is
-covered by the merkle e2e test against real Bitcoin (BSV) block 181. No chain
-fixture is fabricated.
+**Anchor.** Verification of the committing transaction's inclusion folds a real
+Merkle path to a block root and checks that root is in a validated header chain.
+The inclusion proof is genuine: the bundle test `B-T4` anchors via a real
+multi-transaction block (our transaction at a non-trivial position, with real
+sibling hashes the verifier must fold), and tampering any inclusion sibling yields
+`NotAnchored`. Only the block *header* is a clearly-labelled test double — an easy
+compact target so its hash meets target without mining; it is never presented as
+genuine BSV block data. The genuine-block path (real txids → published merkle
+root) is covered by the merkle e2e test against real Bitcoin (BSV) block 181. No
+chain fixture is fabricated. In production the inclusion proof comes from a BSV
+node / a BUMP (BRC-74) path against a real header.
+
+**Chain service.** `@vaa/api` `ChainService` is a single-period chain hardened for
+safe operation: appends are atomic and guarded against re-entrancy; a txid may
+appear at most once (duplicate-txid rejected); the chain length is bounded
+(`MAX_LINKS`); and the full input log can be `snapshot()`-ed and `replay()`-ed to
+recover a byte-identical, verifying chain across a restart (derivation and signing
+are deterministic — RFC6979). This makes the in-memory chain persistable and
+recoverable rather than ephemeral.
+
+## D11a — CI action versions
+
+The CI/release workflows pin `actions/checkout@v5` and `actions/setup-node@v5`
+(Node 24 runtime), avoiding the deprecated Node-20 action runtime.
 
 ## D12 — Forbidden-token scan
 

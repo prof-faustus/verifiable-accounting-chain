@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { HashOps, TxidOps, HeaderChain, meetsTarget } from '@vaa/bsv';
+import { HashOps, TxidOps, HeaderChain, meetsTarget, doubleSha256, pointToHex } from '@vaa/bsv';
 import type { BlockHeader, Hash } from '@vaa/bsv';
 import { ProofStore } from '@vaa/proofstore';
 import { bigInvoiceTransaction, fieldTreeRoot } from '@vaa/evidence';
@@ -106,4 +106,39 @@ test('E.4.1 a tampered bundle fails verification', () => {
   const ver = app.handle({ method: 'POST', path: '/bundle/verify', headers: auth, body: { bundle } });
   assert.equal(ver.status, 200);
   assert.equal((ver.json as { ok: boolean }).ok, false);
+});
+
+function txidN(n: number) {
+  return TxidOps.fromInternalBytes(new Uint8Array(32).fill(n)).value;
+}
+
+test('ChainService rejects a duplicate txid and bounds re-entrancy', () => {
+  const svc = new ChainService(enc('robust'), enc('e'), enc('p'));
+  const a = svc.append(txidN(1), doubleSha256(enc('ra')), undefined);
+  assert.equal(a.ok, true);
+  const dup = svc.append(txidN(1), doubleSha256(enc('rb')), 0);
+  assert.equal(dup.ok, false);
+  if (!dup.ok) assert.match(dup.error.message, /duplicate txid/);
+  // a fresh txid still appends
+  assert.equal(svc.append(txidN(2), doubleSha256(enc('rb')), 0).ok, true);
+  assert.equal(svc.length(), 2);
+});
+
+test('ChainService snapshot + replay reproduces a byte-identical, verifying chain', () => {
+  const svc = new ChainService(enc('robust2'), enc('e'), enc('p'));
+  for (let i = 0; i < 4; i++) svc.append(txidN(10 + i), doubleSha256(enc('rr' + i)), i === 0 ? undefined : 0);
+  assert.deepEqual(svc.verify(), { ok: true });
+  const snap = svc.snapshot();
+  assert.equal(snap.length, 4);
+
+  const replayed = ChainService.replay(enc('robust2'), enc('e'), enc('p'), snap);
+  assert.equal(replayed.ok, true);
+  if (replayed.ok) {
+    assert.deepEqual(replayed.value.verify(), { ok: true });
+    // deterministic derivation + signing => identical head and per-link public keys
+    assert.equal(pointToHex(replayed.value.getChain().head()), pointToHex(svc.getChain().head()));
+    const a = svc.getChain().links().map((l) => pointToHex(l.linkPub));
+    const b = replayed.value.getChain().links().map((l) => pointToHex(l.linkPub));
+    assert.deepEqual(b, a);
+  }
 });
